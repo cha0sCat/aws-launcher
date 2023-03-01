@@ -96,8 +96,42 @@ export default function App() {
     {'value': 'me-central-1', 'label': 'Middle East (UAE)'},
     {'value': 'sa-east-1', 'label': 'South America (São Paulo)'},
   ]
-  const types = ["t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "t2.xlarge", "t2.2xlarge", "t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge", "t3a.nano", "t3a.micro", "t3a.small", "t3a.medium", "t3a.large", "t3a.xlarge", "t3a.2xlarge", "c5.large", "c5.xlarge", "c5.2xlarge", "c5.4xlarge", "c5a.large", "c5a.xlarge", "c5a.2xlarge", "c5a.4xlarge", "c5a.8xlarge", "c5n.large", "c5n.xlarge", "c5n.2xlarge", "c5n.4xlarge"];
-  const typesDetail = ["t2.nano (1c 0.5g Low)", "t2.micro (1c 1g Low to Moderate)", "t2.small (1c 2g Low to Moderate)", "t2.medium (2c 4g Low to Moderate)", "t2.large (2c 8g Low to Moderate)", "t2.xlarge (4c 16g Moderate)", "t2.2xlarge (8c 32g Moderate)", "t3.nano (2c 0.5g 5Gbps)", "t3.micro (2c 1g 5Gbps)", "t3.small (2c 2g 5Gbps)", "t3.medium (2c 4g 5Gbps)", "t3.large (2c 8g 5Gbps)", "t3.xlarge (4c 16g 5Gbps)", "t3.2xlarge (8c 32g 5Gbps)", "t3a.nano (2c 0.5g 5Gbps)", "t3a.micro (2c 1g 5Gbps)", "t3a.small (2c 2g 5Gbps)", "t3a.medium (2c 4g 5Gbps)", "t3a.large (2c 8g 5Gbps)", "t3a.xlarge (4c 16g 5Gbps)", "t3a.2xlarge (8c 32g 5Gbps)", "c5.large (2c 4g 10Gbps)", "c5.xlarge (4c 8g 10Gbps)", "c5.2xlarge (8c 16g 10Gbps)", "c5.4xlarge (16c 32g 10Gbps)", "c5a.large (2c 4g 10Gbps)", "c5a.xlarge (4c 8g 10Gbps)", "c5a.2xlarge (8c 16g 10Gbps)", "c5a.4xlarge (16c 32g 10Gbps)", "c5a.8xlarge (32c 64g 10Gbps)", "c5n.large (2c 5.25g 25Gbps)", "c5n.xlarge (4c 10.5g 25Gbps)", "c5n.2xlarge (8c 21g 25Gbps)", "c5n.4xlarge (16c 42g 25Gbps)"];
+  const types = [
+    {'value': 't2.nano', 'label': 't2.nano (1c 0.5g Low)'},
+    {'value': 't2.micro', 'label': 't2.micro (1c 1g Low to Moderate)'},
+    {'value': 't2.small', 'label': 't2.small (1c 2g Low to Moderate)'},
+    {'value': 't2.medium', 'label': 't2.medium (2c 4g Low to Moderate)'},
+    {'value': 't2.large', 'label': 't2.large (2c 8g Low to Moderate)'},
+    {'value': 't2.xlarge', 'label': 't2.xlarge (4c 16g Moderate)'},
+    {'value': 't2.2xlarge', 'label': 't2.2xlarge (8c 32g Moderate)'},
+    {'value': 't3.nano', 'label': 't3.nano (2c 0.5g 5Gbps)'},
+    {'value': 't3.micro', 'label': 't3.micro (2c 1g 5Gbps)'},
+    {'value': 't3.small', 'label': 't3.small (2c 2g 5Gbps)'},
+    {'value': 't3.medium', 'label': 't3.medium (2c 4g 5Gbps)'},
+    {'value': 't3.large', 'label': 't3.large (2c 8g 5Gbps)'},
+    {'value': 't3.xlarge', 'label': 't3.xlarge (4c 16g 5Gbps)'},
+    {'value': 't3.2xlarge', 'label': 't3.2xlarge (8c 32g 5Gbps)'},
+    {'value': 't3a.nano', 'label': 't3a.nano (2c 0.5g 5Gbps)'},
+    {'value': 't3a.micro', 'label': 't3a.micro (2c 1g 5Gbps)'},
+    {'value': 't3a.small', 'label': 't3a.small (2c 2g 5Gbps)'},
+    {'value': 't3a.medium', 'label': 't3a.medium (2c 4g 5Gbps)'},
+    {'value': 't3a.large', 'label': 't3a.large (2c 8g 5Gbps)'},
+    {'value': 't3a.xlarge', 'label': 't3a.xlarge (4c 16g 5Gbps)'},
+    {'value': 't3a.2xlarge', 'label': 't3a.2xlarge (8c 32g 5Gbps)'},
+    {'value': 'c5.large', 'label': 'c5.large (2c 4g 10Gbps)'},
+    {'value': 'c5.xlarge', 'label': 'c5.xlarge (4c 8g 10Gbps)'},
+    {'value': 'c5.2xlarge', 'label': 'c5.2xlarge (8c 16g 10Gbps)'},
+    {'value': 'c5.4xlarge', 'label': 'c5.4xlarge (16c 32g 10Gbps)'},
+    {'value': 'c5a.large', 'label': 'c5a.large (2c 4g 10Gbps)'},
+    {'value': 'c5a.xlarge', 'label': 'c5a.xlarge (4c 8g 10Gbps)'},
+    {'value': 'c5a.2xlarge', 'label': 'c5a.2xlarge (8c 16g 10Gbps)'},
+    {'value': 'c5a.4xlarge', 'label': 'c5a.4xlarge (16c 32g 10Gbps)'},
+    {'value': 'c5a.8xlarge', 'label': 'c5a.8xlarge (32c 64g 10Gbps)'},
+    {'value': 'c5n.large', 'label': 'c5n.large (2c 5.25g 25Gbps)'},
+    {'value': 'c5n.xlarge', 'label': 'c5n.xlarge (4c 10.5g 25Gbps)'},
+    {'value': 'c5n.2xlarge', 'label': 'c5n.2xlarge (8c 21g 25Gbps)'},
+    {'value': 'c5n.4xlarge', 'label': 'c5n.4xlarge (16c 42g 25Gbps)'},
+  ]
   const instanceStates = new Map([[0, "正在启动"], [16, "正在运行"], [32, "正在关机"], [48, "已终止"], [64, "正在停止"], [80, "已停止"]]);
 
   //Credential States
@@ -1122,8 +1156,8 @@ export default function App() {
             <Select labelId="select-type-label" label="实例类型" value={type} onChange={e => {
               setType(e.target.value);
             }}>
-              {types.map((r, i) =>
-                <MenuItem key={i} value={r}>{typesDetail[i]}</MenuItem>
+              {types.map(type =>
+                <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
               )}
             </Select>
           </FormControl>
