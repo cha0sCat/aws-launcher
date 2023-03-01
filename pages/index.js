@@ -50,6 +50,7 @@ import ServiceQuotas from "aws-sdk/clients/servicequotas";
 // internal
 import handleLaunchInstance from './common/aws/launch-instance';
 import {findSystemInfo, SystemInformation} from './common/aws/launch-instance';
+import handleChangeInstanceIP from './common/aws/change-instance-ip';
 
 //Need Further Investigation
 //var ProxyAgent = require('proxy-agent');
@@ -734,91 +735,35 @@ export default function App() {
       return;
     }
     if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
-      AWS.config = new AWS.Config();
-      AWS.config.update(
-        {
-          accessKeyId: aki,
-          secretAccessKey: saki,
-          region: regionOfCheckedInstances
-        }
-      );
+      const awsConfig = new AWS.Config({
+        accessKeyId: aki,
+        secretAccessKey: saki,
+        region: regionOfCheckedInstances
+      });
       if (mode === ApiMode.LOCAL_WITH_PROXY) {
-        AWS.config.update({
+        awsConfig.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
       }
-      var ec2 = new AWS.EC2();
-      var allocateParams = {
-        Domain: "vpc"
-      };
-      ec2.allocateAddress(allocateParams, function (err, data) {
-        if (err) {
-          showDialog("更换实例ip失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-          setIdOfInstanceChangingIp("");
-        }
-        else {
-          var newAllocationId = data.AllocationId;
-          var associateParams = {
-            AllocationId: newAllocationId,
-            InstanceId: id,
-          };
-          ec2.associateAddress(associateParams, function (err, data) {
-            if (err) {
-              showDialog("更换实例ip失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-              setIdOfInstanceChangingIp("");
-            }
-            else {
-              var disassociateParams = {
-                AssociationId: data.AssociationId
-              };
-              ec2.disassociateAddress(disassociateParams, function (err, data) {
-                if (err) {
-                  showDialog("更换实例ip失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-                  setIdOfInstanceChangingIp("");
-                }
-                else {
-                  var releaseParams = {
-                    AllocationId: newAllocationId
-                  };
-                  ec2.releaseAddress(releaseParams, function (err, data) {
-                    if (err) {
-                      showDialog("更换实例ip失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-                      setIdOfInstanceChangingIp("");
-                    }
-                    else {
-                      setIdOfInstanceChangingIp("");
-                      showCheckInstancesAlert("更换实例ip成功", "请在实例详细信息查看新ip");
-                      checkInstances(true);
-                    }
-                  });
-                }
-              });
-            }
-          });
-        }
-      });
+
+      handleChangeInstanceIP(awsConfig, {instanceId: id})
+        .then(() => {
+          showCheckInstancesAlert("更换实例ip成功", "请在实例详细信息查看新ip");
+          checkInstances(true);
+        })
+        .catch(err => showDialog("更换实例ip失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持"))
+        .finally(() => setIdOfInstanceChangingIp(""))
     }
     else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
-      var postBody
-      if (mode === ApiMode.REMOTE) {
-        postBody = JSON.stringify({
-          aki: aki,
-          saki: saki,
-          region: regionOfCheckedInstances,
-          instanceId: id,
-          useProxy: false
-        });
-      }
-      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
-        postBody = JSON.stringify({
-          aki: aki,
-          saki: saki,
-          region: regionOfCheckedInstances,
-          instanceId: id,
-          useProxy: true,
-          proxy: proxy
-        });
-      }
+      const postBody = JSON.stringify({
+        aki: aki,
+        saki: saki,
+        region: regionOfCheckedInstances,
+        instanceId: id,
+        useProxy: mode === ApiMode.REMOTE_WITH_PROXY,
+        proxy: proxy
+      })
+
       fetch(remote + '/aws-change-instance-ip', {
         method: 'POST',
         headers: {
@@ -827,17 +772,16 @@ export default function App() {
         body: postBody
       })
         .then(async (response) => {
-          var body = await response.json();
+          const body = await response.json();
           if (response.ok) {
             showCheckInstancesAlert("更换实例ip成功", "请在实例详细信息查看新ip");
-            setIdOfInstanceChangingIp("");
             checkInstances(true);
           }
           else {
             showDialog("更换实例ip失败：" + body.err.name, "错误：" + body.err.message + " 请再试一次或联系支持");
-            setIdOfInstanceChangingIp("");
           }
-        });
+        })
+        .finally(() => setIdOfInstanceChangingIp(""))
     }
   }
 
