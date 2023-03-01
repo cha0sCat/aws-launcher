@@ -1,5 +1,5 @@
 //React Components
-import React, { useState } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 
 //Next Components
 import Image from 'next/image'
@@ -47,6 +47,10 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import AWS from 'aws-sdk';
 import ServiceQuotas from "aws-sdk/clients/servicequotas";
 
+// internal
+import handleLaunchInstance from './common/aws/launch-instance';
+import {findSystemInfo, SystemInformation} from './common/aws/launch-instance';
+
 //Need Further Investigation
 //var ProxyAgent = require('proxy-agent');
 var ProxyAgent //This is a placeholder DO NOT USE!
@@ -66,10 +70,6 @@ export default function App() {
   //Informations
   const regions = ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "af-south-1", "ap-east-1", "ap-south-2", "ap-southeast-3", "ap-south-1", "ap-northeast-3", "ap-northeast-2", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2", "eu-south-1", "eu-west-3", "eu-south-2", "eu-north-1", "eu-central-2", "me-south-1", "me-central-1", "sa-east-1"];
   const regionsDetail = ["US East (N. Virginia)", "US East (Ohio)", "US West (N. California)", "US West (Oregon)", "Africa (Cape Town)", "Asia Pacific (Hong Kong)", "Asia Pacific (Hyderabad)", "Asia Pacific (Jakarta)", "Asia Pacific (Mumbai)", "Asia Pacific (Osaka)", "Asia Pacific (Seoul)", "Asia Pacific (Singapore)", "Asia Pacific (Sydney)", "Asia Pacific (Tokyo)", "Canada (Central)", "Europe (Frankfurt)", "Europe (Ireland)", "Europe (London)", "Europe (Milan)", "Europe (Paris)", "Europe (Spain)", "Europe (Stockholm)", "Middle East (Zurich)", "Middle East (Bahrain)", "Middle East (UAE)", "South America (São Paulo)"];
-  const systems = ["debian-10", "debian-11", "ubuntu-20.04", "ubuntu-22.04", "arch-linux", "windows-server-2022-sc", "windows-server-2022-en"];
-  const systemsDetail = ["Debian 10", "Debian 11", "Ubuntu 20.04", "Ubuntu 22.04", "Arch Linux", "Windows Server 2022 简体中文版", "Windows Server 2022 英文版"];
-  const systemImageNameMap = new Map([["debian-10", "debian-10-amd64-2022*"], ["debian-11", "debian-11-amd64-2022*"], ["ubuntu-20.04", "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-2022*"], ["ubuntu-22.04", "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-2022*"], ["Arch Linux", "*"], ["windows-server-2022-sc", "Windows_Server-2022-Chinese_Simplified-Full-Base-*"], ["windows-server-2022-en", "Windows_Server-2022-English-Full-Base-*"]]);
-  const systemImageOwnerMap = new Map([["debian-10", "136693071363"], ["debian-11", "136693071363"], ["ubuntu-20.04", "099720109477"], ["ubuntu-22.04", "099720109477"], ["Arch Linux", "647457786197"], ["windows-server-2022-sc", "801119661308"], ["windows-server-2022-en", "801119661308"]]);
   const types = ["t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "t2.xlarge", "t2.2xlarge", "t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge", "t3a.nano", "t3a.micro", "t3a.small", "t3a.medium", "t3a.large", "t3a.xlarge", "t3a.2xlarge", "c5.large", "c5.xlarge", "c5.2xlarge", "c5.4xlarge", "c5a.large", "c5a.xlarge", "c5a.2xlarge", "c5a.4xlarge", "c5a.8xlarge", "c5n.large", "c5n.xlarge", "c5n.2xlarge", "c5n.4xlarge"];
   const typesDetail = ["t2.nano (1c 0.5g Low)", "t2.micro (1c 1g Low to Moderate)", "t2.small (1c 2g Low to Moderate)", "t2.medium (2c 4g Low to Moderate)", "t2.large (2c 8g Low to Moderate)", "t2.xlarge (4c 16g Moderate)", "t2.2xlarge (8c 32g Moderate)", "t3.nano (2c 0.5g 5Gbps)", "t3.micro (2c 1g 5Gbps)", "t3.small (2c 2g 5Gbps)", "t3.medium (2c 4g 5Gbps)", "t3.large (2c 8g 5Gbps)", "t3.xlarge (4c 16g 5Gbps)", "t3.2xlarge (8c 32g 5Gbps)", "t3a.nano (2c 0.5g 5Gbps)", "t3a.micro (2c 1g 5Gbps)", "t3a.small (2c 2g 5Gbps)", "t3a.medium (2c 4g 5Gbps)", "t3a.large (2c 8g 5Gbps)", "t3a.xlarge (4c 16g 5Gbps)", "t3a.2xlarge (8c 32g 5Gbps)", "c5.large (2c 4g 10Gbps)", "c5.xlarge (4c 8g 10Gbps)", "c5.2xlarge (8c 16g 10Gbps)", "c5.4xlarge (16c 32g 10Gbps)", "c5a.large (2c 4g 10Gbps)", "c5a.xlarge (4c 8g 10Gbps)", "c5a.2xlarge (8c 16g 10Gbps)", "c5a.4xlarge (16c 32g 10Gbps)", "c5a.8xlarge (32c 64g 10Gbps)", "c5n.large (2c 5.25g 25Gbps)", "c5n.xlarge (4c 10.5g 25Gbps)", "c5n.2xlarge (8c 21g 25Gbps)", "c5n.4xlarge (16c 42g 25Gbps)"];
   const instanceStates = new Map([[0, "正在启动"], [16, "正在运行"], [32, "正在关机"], [48, "已终止"], [64, "正在停止"], [80, "已停止"]]);
@@ -87,7 +87,6 @@ export default function App() {
   //Configuration States
   const [liRegion, setLiRegion] = useState("");
   const [system, setSystem] = useState("");
-  const [systemType, setSystemType] = useState("");
   const [type, setType] = useState("");
   const [ami, setAmi] = useState("");
   const [password, setPassword] = useState("");
@@ -122,6 +121,12 @@ export default function App() {
   const [idOfInstanceChangingIp, setIdOfInstanceChangingIp] = useState("");
   const [idOfInstanceTerminating, setIdOfInstanceTerminating] = useState("");
   const [isShowAdvancedOptions, setIsShowAdvancedOptions] = useState(false);
+
+  // 根据系统设置 systemType
+  const systemType = useMemo(() => isShowAdvancedOptions ? 'Unknown' : findSystemInfo(system)?.systemType, [system, isShowAdvancedOptions]);
+
+  // Windows 系统不需要密码
+  useEffect(() => {systemType === "Windows" && setPassword("")}, [systemType])
 
   //Data States
   const [instances, setInstances] = useState([]);
@@ -242,7 +247,7 @@ export default function App() {
       setIsLaunchingInstance(false);
       return;
     }
-    if (password.length < 6 && systemType == "Linux") {
+    if (password.length < 6 && systemType === "Linux" && !isShowAdvancedOptions) {
       showDialog("无效密码", "请输入6位以上密码后再试一次");
       setIsLaunchingInstance(false);
       return;
@@ -262,222 +267,56 @@ export default function App() {
       setIsLaunchingInstance(false);
       return;
     }
+
+    let instanceConfig = {
+      InstanceType: type,
+      VolumeSize: parseInt(disk),
+    }
+
+    if (isShowAdvancedOptions) {
+      instanceConfig = {...instanceConfig, ami, userData: userdata}
+    } else {
+      instanceConfig = {...instanceConfig, system, password}
+    }
+
     if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
-      AWS.config = new AWS.Config();
-      AWS.config.update(
-        {
-          accessKeyId: aki,
-          secretAccessKey: saki,
-          region: liRegion
-        }
-      );
+      const awsConfig = new AWS.Config({
+        accessKeyId: aki,
+        secretAccessKey: saki,
+        region: liRegion
+      });
       if (mode === ApiMode.LOCAL_WITH_PROXY) {
-        AWS.config.update({
+        awsConfig.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
       }
-      var ec2 = new AWS.EC2();
 
-      var imageId = ''
-      if (ami != "") {
-        imageId = ami;
-      }
-      else {
-        var imageName = systemImageNameMap.get(system);
-        var imageOwner = systemImageOwnerMap.get(system);
-
-        var imageParams = {
-          Filters: [
-            {
-              Name: 'name',
-              Values: [
-                imageName
-              ]
-            },
-            {
-              Name: 'architecture',
-              Values: [
-                'x86_64'
-              ]
-            }
-          ],
-          Owners: [
-            imageOwner
-          ]
-        }
-        ec2.describeImages(imageParams, function (err, data) {
-          if (err) {
-            showDialog("启动实例失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-            setIsLaunchingInstance(false);
-            return;
+      handleLaunchInstance(awsConfig, instanceConfig)
+        .then((instanceInfo) => {
+          showLaunchInstanceAlert("启动实例成功", "您的新实例id为" + instanceInfo.instanceId + "，请通过查询实例详细信息获得公网ip");
+          setInstances([]);
+          if (instanceInfo.systemType === "Windows") {
+            const blob = new Blob([instanceInfo.KeyMaterial], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = "key.pem";
+            link.href = url;
+            link.click();
           }
-          else {
-            imageId = data.Images[0].ImageId
-          }
-        });
-      }
-
-      var keyName = String(Date.now())
-      var keyParams = {
-        KeyName: keyName
-      };
-      ec2.createKeyPair(keyParams, function (err, data) {
-        if (err) {
-          showDialog("启动实例失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-          setIsLaunchingInstance(false);
-          return;
-        }
-
-        if (systemType == "Windows") {
-          const blob = new Blob([data.KeyMaterial], { type: "text/plain" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.download = "key.pem";
-          link.href = url;
-          link.click();
-        }
-      });
-
-      var groupId = ''
-      var sgParams = {
-        Description: keyName,
-        GroupName: keyName
-      }
-      ec2.createSecurityGroup(sgParams, function (err, data) {
-        if (err) {
-          showDialog("启动实例失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-          setIsLaunchingInstance(false);
-          return;
-        } else {
-          groupId = data.GroupId
-
-          var asgParams = {
-            GroupId: groupId,
-            IpPermissions: [
-              {
-                FromPort: 0,
-                IpProtocol: "tcp",
-                IpRanges: [
-                  {
-                    CidrIp: "0.0.0.0/0",
-                    Description: "All TCP"
-                  }
-                ],
-                ToPort: 65535
-              },
-              {
-                FromPort: 0,
-                IpProtocol: "udp",
-                IpRanges: [
-                  {
-                    CidrIp: "0.0.0.0/0",
-                    Description: "All UDP"
-                  }
-                ],
-                ToPort: 65535
-              },
-              {
-                FromPort: -1,
-                IpProtocol: "icmp",
-                IpRanges: [
-                  {
-                    CidrIp: "0.0.0.0/0",
-                    Description: "All ICMP"
-                  }
-                ],
-                ToPort: -1
-              },
-              {
-                FromPort: -1,
-                IpProtocol: "icmpv6",
-                IpRanges: [
-                  {
-                    CidrIp: "0.0.0.0/0",
-                    Description: "All ICMPV6"
-                  }
-                ],
-                ToPort: -1
-              }
-            ]
-          };
-          ec2.authorizeSecurityGroupIngress(asgParams, function (err, data) {
-            if (err) {
-              showDialog("启动实例失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-              console.log(err);
-              setIsLaunchingInstance(false);
-              return;
-            } else {
-
-              var userData = "";
-              if (systemType == "Linux") {
-                var userDataRaw = "#!/bin/bash\necho root:" + password + "|sudo chpasswd root\nsudo rm -rf /etc/ssh/sshd_config\nsudo tee /etc/ssh/sshd_config <<EOF\nClientAliveInterval 120\nSubsystem       sftp    /usr/lib/openssh/sftp-server\nX11Forwarding yes\nPrintMotd no\nChallengeResponseAuthentication no\nPasswordAuthentication yes\nPermitRootLogin yes\nUsePAM yes\nAcceptEnv LANG LC_*\nEOF\nsudo systemctl restart sshd\n" + userdata;
-                userData = btoa(userDataRaw);
-              }
-              var instanceParams = {
-                BlockDeviceMappings: [
-                  {
-                    DeviceName: "/dev/xvda",
-                    Ebs: {
-                      VolumeSize: parseInt(disk)
-                    }
-                  }
-                ],
-                ImageId: imageId,
-                InstanceType: type,
-                KeyName: keyName,
-                MinCount: 1,
-                MaxCount: 1,
-                SecurityGroupIds: [
-                  groupId
-                ],
-                UserData: userData
-              };
-              ec2.runInstances(instanceParams, function (err, data) {
-                if (err) {
-                  showDialog("启动实例失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持");
-                  setIsLaunchingInstance(false);
-                } else {
-                  showLaunchInstanceAlert("启动实例成功", "您的新实例id为" + data.Instances[0].InstanceId + "，请通过查询实例详细信息获得公网ip");
-                  setIsLaunchingInstance(false);
-                  setInstances([]);
-                }
-              });
-
-            }
-          });
-
-        }
-      });
-    }
-    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
-      var postBody
-      if (mode === ApiMode.REMOTE) {
-        postBody = JSON.stringify({
-          aki: aki,
-          saki: saki,
-          region: liRegion,
-          system: system,
-          systemType: systemType,
-          type: type,
-          password: password,
-          disk: parseInt(disk),
-          useProxy: false
         })
-      }
-      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
-        postBody = JSON.stringify({
-          aki: aki,
-          saki: saki,
-          region: liRegion,
-          system: system,
-          systemType: systemType,
-          type: type,
-          password: password,
-          disk: parseInt(disk),
-          useProxy: true,
-          proxy: proxy
-        })
-      }
+        .catch(err => showDialog("启动实例失败：" + err.name, "错误：" + err.message + " 请再试一次或联系支持"))
+        .finally(() => setIsLaunchingInstance(false))
+
+    } else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
+      const postBody = JSON.stringify({
+        aki: aki,
+        saki: saki,
+        region: liRegion,
+        ...instanceConfig,
+        useProxy: mode === ApiMode.REMOTE_WITH_PROXY,
+        proxy: proxy
+      })
+
       fetch(remote + '/aws-launch-instance', {
         method: 'POST',
         headers: {
@@ -486,9 +325,12 @@ export default function App() {
         body: postBody
       })
         .then(async (response) => {
-          var body = await response.json();
+          const body = await response.json();
           if (response.ok) {
-            if (systemType == "Windows") {
+            showLaunchInstanceAlert("启动实例成功", "您的新实例id为" + body.instanceId + "，请通过查询实例详细信息获得公网ip");
+            setInstances([]);
+
+            if (body.systemType === "Windows") {
               const blob = new Blob([body.KeyMaterial], { type: "text/plain" });
               const url = URL.createObjectURL(blob);
               const link = document.createElement("a");
@@ -496,16 +338,14 @@ export default function App() {
               link.href = url;
               link.click();
             }
-
-            showLaunchInstanceAlert("启动实例成功", "您的新实例id为" + body.instanceId + "，请通过查询实例详细信息获得公网ip");
-            setIsLaunchingInstance(false);
-            setInstances([]);
-          }
-          else {
+          } else {
             showDialog("启动实例失败：" + body.error.name, "错误：" + body.error.message + " 请再试一次或联系支持");
-            setIsLaunchingInstance(false);
           }
-        });
+        })
+        .catch(err => {
+          showDialog("启动实例失败", "错误：" + err.message + " 请再试一次或联系支持");
+        })
+        .finally(() => setIsLaunchingInstance(false));
     }
   }
 
@@ -1078,38 +918,34 @@ export default function App() {
           </Alert>
         </Collapse>
       </div>
-      {isShowAdvancedOptions ? (
-        <Typography sx={{ m: 1 }}>运行模式：本地</Typography>
-      ) : (
-        <div>
-          <FormControl sx={{ m: 1 }}>
-            <Box>
-              <FormLabel id="mode-radio-buttons-group-label">运行模式</FormLabel>
-              <Button variant="text" size="small" startIcon={<HelpOutlineIcon />} onClick={() => {
-                setModeTipOpen(true);
-              }}>帮助</Button>
-            </Box>
-            <RadioGroup
-              row
-              aria-labelledby="mode-radio-buttons-group-label"
-              defaultValue={1}
-              onChange={e => {
-                setMode(parseInt(e.currentTarget.value))
-                setIpInfomation("");
-              }}
-            >
-              <FormControlLabel value={1} control={<Radio />} label="本地" />
-              <FormControlLabel value={2} control={<Radio />} label="远端" />
-              {
-                //Uncomment this when proxy-agent is ready to use
-                //<FormControlLabel value={3} control={<Radio />} label="本地+代理（高级用户）" />
-              }
-              <FormControlLabel value={4} control={<Radio />} label="远端+代理" />
+      <div>
+        <FormControl sx={{ m: 1 }}>
+          <Box>
+            <FormLabel id="mode-radio-buttons-group-label">运行模式</FormLabel>
+            <Button variant="text" size="small" startIcon={<HelpOutlineIcon />} onClick={() => {
+              setModeTipOpen(true);
+            }}>帮助</Button>
+          </Box>
+          <RadioGroup
+            row
+            aria-labelledby="mode-radio-buttons-group-label"
+            defaultValue={1}
+            onChange={e => {
+              setMode(parseInt(e.currentTarget.value))
+              setIpInfomation("");
+            }}
+          >
+            <FormControlLabel value={1} control={<Radio />} label="本地" />
+            <FormControlLabel value={2} control={<Radio />} label="远端" />
+            {
+              //Uncomment this when proxy-agent is ready to use
+              //<FormControlLabel value={3} control={<Radio />} label="本地+代理（高级用户）" />
+            }
+            <FormControlLabel value={4} control={<Radio />} label="远端+代理" />
 
-            </RadioGroup>
-          </FormControl>
-        </div>
-      )}
+          </RadioGroup>
+        </FormControl>
+      </div>
       {mode === ApiMode.REMOTE ? (
         <>
           <div>
@@ -1182,7 +1018,6 @@ export default function App() {
         <FormGroup sx={{ m: 1 }} >
           <FormControlLabel control={<Checkbox size="small" checked={isShowAdvancedOptions} onChange={(e) => {
             setIsShowAdvancedOptions(e.target.checked);
-            setMode(1);
           }} />} label={<Typography variant="subtitle2">专家模式</Typography>} />
         </FormGroup>
       </div>
@@ -1233,23 +1068,18 @@ export default function App() {
           <FormControl sx={{ m: 1, minWidth: 250 }} size="small">
             <TextField label="AMI ID" variant="outlined" size="small" onChange={(e) => {
               setAmi(e.target.value);
-            }} />
+            }} value={ami} />
           </FormControl>
         ) : (
           <FormControl sx={{ m: 1, minWidth: 150 }} size="small">
             <InputLabel id="select-system-label">操作系统</InputLabel>
             <Select labelId="select-system-label" label="操作系统" value={system} onChange={e => {
               setSystem(e.target.value);
-              if (e.target.value == "debian-10" || e.target.value == "debian-11" || e.target.value == "ubuntu-20.04" || e.target.value == "ubuntu-22.04" || e.target.value == "arch-linux") {
-                setSystemType("Linux");
-              }
-              if (e.target.value == "windows-server-2022-sc" || e.target.value == "windows-server-2022-en") {
-                setSystemType("Windows");
-                setPassword("");
-              }
             }}>
-              {systems.map((r, i) =>
-                <MenuItem key={i} value={r}>{systemsDetail[i]}</MenuItem>
+              {SystemInformation.map(systemInformation =>
+                <MenuItem key={systemInformation.name} value={systemInformation.name}>
+                  {systemInformation.displayName}
+                </MenuItem>
               )}
             </Select>
           </FormControl>
@@ -1272,7 +1102,7 @@ export default function App() {
             </Select>
           </FormControl>
         )}
-        {systemType == "Linux" ? (
+        {systemType === "Linux" && !isShowAdvancedOptions && (
           <div>
             <FormControl sx={{ m: 1, minWidth: 150 }}>
               <TextField label="密码" type="password" variant="outlined" size="small" onChange={(e) => {
@@ -1280,8 +1110,6 @@ export default function App() {
               }} />
             </FormControl>
           </div>
-        ) : (
-          <></>
         )}
         <div>
           <FormControl sx={{ m: 1, minWidth: 150 }}>
@@ -1293,7 +1121,7 @@ export default function App() {
         {isShowAdvancedOptions ? (
           <div>
             <FormControl sx={{ m: 1, width: 0.9, maxWidth: 600 }}>
-              <TextField label="User Data" variant="outlined" size="small" multiline onChange={(e) => {
+              <TextField label="User Data" variant="outlined" size="small" multiline value={userdata} onChange={(e) => {
                 setUserdata(e.target.value);
               }} />
             </FormControl>
