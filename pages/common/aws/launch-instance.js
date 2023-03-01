@@ -105,7 +105,7 @@ export const SystemInformation = [
  * @return {{imageName: string, displayName: string, name: string, imageOwner: string, systemType: string}}
  */
 export function findSystemInfo(systemName) {
-  return SystemInformation.find(system => system.name === systemName)
+  return SystemInformation.find(system => system.name === systemName) ?? {}
 }
 
 /**
