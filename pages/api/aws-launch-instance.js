@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
 import proxyAgent from 'proxy-agent';
-import launchInstance from '../common/aws/launch-instance.js';
+import launchInstance from '../../common/common/aws/launch-instance.js';
 
 export default async function handler(req, res) {
     const awsConfig = new AWS.Config({
