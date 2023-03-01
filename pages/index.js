@@ -68,8 +68,34 @@ export default function App() {
   const defaultRemote = process.env.NEXT_PUBLIC_DEFAULT_REMOTE || "/api";
 
   //Informations
-  const regions = ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "af-south-1", "ap-east-1", "ap-south-2", "ap-southeast-3", "ap-south-1", "ap-northeast-3", "ap-northeast-2", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2", "eu-south-1", "eu-west-3", "eu-south-2", "eu-north-1", "eu-central-2", "me-south-1", "me-central-1", "sa-east-1"];
-  const regionsDetail = ["US East (N. Virginia)", "US East (Ohio)", "US West (N. California)", "US West (Oregon)", "Africa (Cape Town)", "Asia Pacific (Hong Kong)", "Asia Pacific (Hyderabad)", "Asia Pacific (Jakarta)", "Asia Pacific (Mumbai)", "Asia Pacific (Osaka)", "Asia Pacific (Seoul)", "Asia Pacific (Singapore)", "Asia Pacific (Sydney)", "Asia Pacific (Tokyo)", "Canada (Central)", "Europe (Frankfurt)", "Europe (Ireland)", "Europe (London)", "Europe (Milan)", "Europe (Paris)", "Europe (Spain)", "Europe (Stockholm)", "Middle East (Zurich)", "Middle East (Bahrain)", "Middle East (UAE)", "South America (São Paulo)"];
+  const regions = [
+    {'value': 'us-east-1', 'label': 'US East (N. Virginia)'},
+    {'value': 'us-east-2', 'label': 'US East (Ohio)'},
+    {'value': 'us-west-1', 'label': 'US West (N. California)'},
+    {'value': 'us-west-2', 'label': 'US West (Oregon)'},
+    {'value': 'af-south-1', 'label': 'Africa (Cape Town)'},
+    {'value': 'ap-east-1', 'label': 'Asia Pacific (Hong Kong)'},
+    {'value': 'ap-south-2', 'label': 'Asia Pacific (Hyderabad)'},
+    {'value': 'ap-southeast-3', 'label': 'Asia Pacific (Jakarta)'},
+    {'value': 'ap-south-1', 'label': 'Asia Pacific (Mumbai)'},
+    {'value': 'ap-northeast-3', 'label': 'Asia Pacific (Osaka)'},
+    {'value': 'ap-northeast-2', 'label': 'Asia Pacific (Seoul)'},
+    {'value': 'ap-southeast-1', 'label': 'Asia Pacific (Singapore)'},
+    {'value': 'ap-southeast-2', 'label': 'Asia Pacific (Sydney)'},
+    {'value': 'ap-northeast-1', 'label': 'Asia Pacific (Tokyo)'},
+    {'value': 'ca-central-1', 'label': 'Canada (Central)'},
+    {'value': 'eu-central-1', 'label': 'Europe (Frankfurt)'},
+    {'value': 'eu-west-1', 'label': 'Europe (Ireland)'},
+    {'value': 'eu-west-2', 'label': 'Europe (London)'},
+    {'value': 'eu-south-1', 'label': 'Europe (Milan)'},
+    {'value': 'eu-west-3', 'label': 'Europe (Paris)'},
+    {'value': 'eu-south-2', 'label': 'Europe (Spain)'},
+    {'value': 'eu-north-1', 'label': 'Europe (Stockholm)'},
+    {'value': 'eu-central-2', 'label': 'Middle East (Zurich)'},
+    {'value': 'me-south-1', 'label': 'Middle East (Bahrain)'},
+    {'value': 'me-central-1', 'label': 'Middle East (UAE)'},
+    {'value': 'sa-east-1', 'label': 'South America (São Paulo)'},
+  ]
   const types = ["t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "t2.xlarge", "t2.2xlarge", "t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge", "t3a.nano", "t3a.micro", "t3a.small", "t3a.medium", "t3a.large", "t3a.xlarge", "t3a.2xlarge", "c5.large", "c5.xlarge", "c5.2xlarge", "c5.4xlarge", "c5a.large", "c5a.xlarge", "c5a.2xlarge", "c5a.4xlarge", "c5a.8xlarge", "c5n.large", "c5n.xlarge", "c5n.2xlarge", "c5n.4xlarge"];
   const typesDetail = ["t2.nano (1c 0.5g Low)", "t2.micro (1c 1g Low to Moderate)", "t2.small (1c 2g Low to Moderate)", "t2.medium (2c 4g Low to Moderate)", "t2.large (2c 8g Low to Moderate)", "t2.xlarge (4c 16g Moderate)", "t2.2xlarge (8c 32g Moderate)", "t3.nano (2c 0.5g 5Gbps)", "t3.micro (2c 1g 5Gbps)", "t3.small (2c 2g 5Gbps)", "t3.medium (2c 4g 5Gbps)", "t3.large (2c 8g 5Gbps)", "t3.xlarge (4c 16g 5Gbps)", "t3.2xlarge (8c 32g 5Gbps)", "t3a.nano (2c 0.5g 5Gbps)", "t3a.micro (2c 1g 5Gbps)", "t3a.small (2c 2g 5Gbps)", "t3a.medium (2c 4g 5Gbps)", "t3a.large (2c 8g 5Gbps)", "t3a.xlarge (4c 16g 5Gbps)", "t3a.2xlarge (8c 32g 5Gbps)", "c5.large (2c 4g 10Gbps)", "c5.xlarge (4c 8g 10Gbps)", "c5.2xlarge (8c 16g 10Gbps)", "c5.4xlarge (16c 32g 10Gbps)", "c5a.large (2c 4g 10Gbps)", "c5a.xlarge (4c 8g 10Gbps)", "c5a.2xlarge (8c 16g 10Gbps)", "c5a.4xlarge (16c 32g 10Gbps)", "c5a.8xlarge (32c 64g 10Gbps)", "c5n.large (2c 5.25g 25Gbps)", "c5n.xlarge (4c 10.5g 25Gbps)", "c5n.2xlarge (8c 21g 25Gbps)", "c5n.4xlarge (16c 42g 25Gbps)"];
   const instanceStates = new Map([[0, "正在启动"], [16, "正在运行"], [32, "正在关机"], [48, "已终止"], [64, "正在停止"], [80, "已停止"]]);
@@ -1054,12 +1080,12 @@ export default function App() {
             setLiRegion(e.target.value);
           }}>
             {isShowAdvancedOptions ?
-              regions.map((r, i) =>
-                <MenuItem key={i} value={r}>{regions[i]}</MenuItem>
+              regions.map((region) =>
+                <MenuItem key={region.value} value={region.value}>{region.value}</MenuItem>
               )
               :
-              regions.map((r, i) =>
-                <MenuItem key={i} value={r}>{regionsDetail[i]}</MenuItem>
+              regions.map((region) =>
+                <MenuItem key={region.value} value={region.value}>{region.label}</MenuItem>
               )
             }
           </Select>
@@ -1153,12 +1179,12 @@ export default function App() {
             setGqRegion(e.target.value);
           }}>
             {isShowAdvancedOptions ?
-              regions.map((r, i) =>
-                <MenuItem key={i} value={r}>{regions[i]}</MenuItem>
+              regions.map((region) =>
+                <MenuItem key={region.value} value={region.value}>{region.value}</MenuItem>
               )
               :
-              regions.map((r, i) =>
-                <MenuItem key={i} value={r}>{regionsDetail[i]}</MenuItem>
+              regions.map((region) =>
+                <MenuItem key={region.value} value={region.value}>{region.label}</MenuItem>
               )
             }
           </Select>
@@ -1188,12 +1214,12 @@ export default function App() {
             setCiRegion(e.target.value);
           }}>
             {isShowAdvancedOptions ?
-              regions.map((r, i) =>
-                <MenuItem key={i} value={r}>{regions[i]}</MenuItem>
+              regions.map((region) =>
+                <MenuItem key={region.value} value={region.value}>{region.value}</MenuItem>
               )
               :
-              regions.map((r, i) =>
-                <MenuItem key={i} value={r}>{regionsDetail[i]}</MenuItem>
+              regions.map((region) =>
+                <MenuItem key={region.value} value={region.value}>{region.label}</MenuItem>
               )
             }
           </Select>
