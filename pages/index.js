@@ -51,6 +51,14 @@ import ServiceQuotas from "aws-sdk/clients/servicequotas";
 //var ProxyAgent = require('proxy-agent');
 var ProxyAgent //This is a placeholder DO NOT USE!
 
+
+class ApiMode {
+  static LOCAL = 1;
+  static REMOTE = 2;
+  static LOCAL_WITH_PROXY = 3;
+  static REMOTE_WITH_PROXY = 4;
+}
+
 export default function App() {
   //Environments
   const defaultRemote = process.env.NEXT_PUBLIC_DEFAULT_REMOTE || "/api";
@@ -72,7 +80,7 @@ export default function App() {
   const [keyFile, setKeyFile] = useState();
 
   //Mode States
-  const [mode, setMode] = useState(1);
+  const [mode, setMode] = useState(ApiMode.LOCAL);
   const [remote, setRemote] = useState(defaultRemote);
   const [proxy, setProxy] = useState("");
 
@@ -164,8 +172,8 @@ export default function App() {
 
   //Operations
   function getIp() {
-    if (mode === 1 || mode === 3) {
-      if (mode === 3) {
+    if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
+      if (mode === ApiMode.LOCAL_WITH_PROXY) {
         //Use proxy
         //Need Further Investigation
       }
@@ -182,12 +190,12 @@ export default function App() {
           }
         });
     }
-    else if (mode === 2 || mode === 4) {
+    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
       var postBody
-      if (mode === 2) {
+      if (mode === ApiMode.REMOTE) {
         postBody = JSON.stringify({});
       }
-      else if (mode === 4) {
+      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
         postBody = JSON.stringify({
           useProxy: true,
           proxy: proxy
@@ -244,17 +252,17 @@ export default function App() {
       setIsLaunchingInstance(false);
       return;
     }
-    if ((mode === 2 || mode === 3 || mode === 4) && !validateRemote()) {
+    if ((mode === ApiMode.REMOTE || mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateRemote()) {
       showDialog("无效远端地址", "远端地址格式不正确，请修改后再试一次");
       setIsLaunchingInstance(false);
       return;
     }
-    if ((mode === 3 || mode === 4) && !validateProxy()) {
+    if ((mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateProxy()) {
       showDialog("无效代理地址", "代理地址格式不正确，请修改后再试一次");
       setIsLaunchingInstance(false);
       return;
     }
-    if (mode === 1 || mode === 3) {
+    if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
       AWS.config = new AWS.Config();
       AWS.config.update(
         {
@@ -263,7 +271,7 @@ export default function App() {
           region: liRegion
         }
       );
-      if (mode === 3) {
+      if (mode === ApiMode.LOCAL_WITH_PROXY) {
         AWS.config.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
@@ -441,9 +449,9 @@ export default function App() {
         }
       });
     }
-    else if (mode === 2 || mode === 4) {
+    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
       var postBody
-      if (mode === 2) {
+      if (mode === ApiMode.REMOTE) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -456,7 +464,7 @@ export default function App() {
           useProxy: false
         })
       }
-      else if (mode === 4) {
+      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -513,17 +521,17 @@ export default function App() {
       setIsGettingQuota(false);
       return;
     }
-    if ((mode === 2 || mode === 3 || mode === 4) && !validateRemote()) {
+    if ((mode === ApiMode.REMOTE || mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateRemote()) {
       showDialog("无效远端地址", "远端地址格式不正确，请修改后再试一次");
       setIsGettingQuota(false);
       return;
     }
-    if ((mode === 3 || mode === 4) && !validateProxy()) {
+    if ((mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateProxy()) {
       showDialog("无效代理地址", "代理地址格式不正确，请修改后再试一次");
       setIsGettingQuota(false);
       return;
     }
-    if (mode === 1 || mode === 3) {
+    if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
       AWS.config = new AWS.Config();
       AWS.config.update(
         {
@@ -532,7 +540,7 @@ export default function App() {
           region: gqRegion
         }
       );
-      if (mode === 3) {
+      if (mode === ApiMode.LOCAL_WITH_PROXY) {
         AWS.config.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
@@ -553,9 +561,9 @@ export default function App() {
         }
       });
     }
-    else if (mode === 2 || mode === 4) {
+    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
       var postBody
-      if (mode === 2) {
+      if (mode === ApiMode.REMOTE) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -563,7 +571,7 @@ export default function App() {
           useProxy: false
         });
       }
-      else if (mode === 4) {
+      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -607,17 +615,17 @@ export default function App() {
       setIsCheckingInstances(false);
       return;
     }
-    if ((mode === 2 || mode === 3 || mode === 4) && !validateRemote()) {
+    if ((mode === ApiMode.REMOTE || mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateRemote()) {
       showDialog("无效远端地址", "远端地址格式不正确，请修改后再试一次");
       setIsCheckingInstances(false);
       return;
     }
-    if ((mode === 3 || mode === 4) && !validateProxy()) {
+    if ((mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateProxy()) {
       showDialog("无效代理地址", "代理地址格式不正确，请修改后再试一次");
       setIsCheckingInstances(false);
       return;
     }
-    if (mode === 1 || mode === 3) {
+    if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
       AWS.config = new AWS.Config();
       AWS.config.update(
         {
@@ -626,7 +634,7 @@ export default function App() {
           region: ciRegion
         }
       );
-      if (mode === 3) {
+      if (mode === ApiMode.LOCAL_WITH_PROXY) {
         AWS.config.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
@@ -655,9 +663,9 @@ export default function App() {
         }
       });
     }
-    else if (mode === 2 || mode === 4) {
+    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
       var postBody
-      if (mode === 2) {
+      if (mode === ApiMode.REMOTE) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -665,7 +673,7 @@ export default function App() {
           useProxy: false
         });
       }
-      else if (mode === 4) {
+      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -712,7 +720,7 @@ export default function App() {
       const JSEncrypt = (await import('jsencrypt')).default;
       var decrypt = new JSEncrypt();
       decrypt.setPrivateKey(e.target.result);
-      if (mode === 1 || mode === 3) {
+      if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
         AWS.config = new AWS.Config();
         AWS.config.update(
           {
@@ -721,7 +729,7 @@ export default function App() {
             region: regionOfCheckedInstances
           }
         );
-        if (mode === 3) {
+        if (mode === ApiMode.LOCAL_WITH_PROXY) {
           AWS.config.update({
             httpOptions: { agent: ProxyAgent(proxy) }
           });
@@ -753,9 +761,9 @@ export default function App() {
           setIdOfGettingWindowsPassword("");
         });
       }
-      else if (mode === 2 || mode === 4) {
+      else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
         var postBody
-        if (mode === 2) {
+        if (mode === ApiMode.REMOTE) {
           postBody = JSON.stringify({
             aki: aki,
             saki: saki,
@@ -764,7 +772,7 @@ export default function App() {
             useProxy: false
           });
         }
-        else if (mode === 4) {
+        else if (mode === ApiMode.REMOTE_WITH_PROXY) {
           postBody = JSON.stringify({
             aki: aki,
             saki: saki,
@@ -815,17 +823,17 @@ export default function App() {
       setIdOfInstanceChangingIp("");
       return;
     }
-    if ((mode === 2 || mode === 3 || mode === 4) && !validateRemote()) {
+    if ((mode === ApiMode.REMOTE || mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateRemote()) {
       showDialog("无效远端地址", "远端地址格式不正确，请修改后再试一次");
       setIdOfInstanceChangingIp("");
       return;
     }
-    if ((mode === 3 || mode === 4) && !validateProxy()) {
+    if ((mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateProxy()) {
       showDialog("无效代理地址", "代理地址格式不正确，请修改后再试一次");
       setIdOfInstanceChangingIp("");
       return;
     }
-    if (mode === 1 || mode === 3) {
+    if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
       AWS.config = new AWS.Config();
       AWS.config.update(
         {
@@ -834,7 +842,7 @@ export default function App() {
           region: regionOfCheckedInstances
         }
       );
-      if (mode === 3) {
+      if (mode === ApiMode.LOCAL_WITH_PROXY) {
         AWS.config.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
@@ -890,9 +898,9 @@ export default function App() {
         }
       });
     }
-    else if (mode === 2 || mode === 4) {
+    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
       var postBody
-      if (mode === 2) {
+      if (mode === ApiMode.REMOTE) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -901,7 +909,7 @@ export default function App() {
           useProxy: false
         });
       }
-      else if (mode === 4) {
+      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -940,17 +948,17 @@ export default function App() {
       setIdOfInstanceTerminating("");
       return;
     }
-    if ((mode === 2 || mode === 3 || mode === 4) && !validateRemote()) {
+    if ((mode === ApiMode.REMOTE || mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateRemote()) {
       showDialog("无效远端地址", "远端地址格式不正确，请修改后再试一次");
       setIdOfInstanceTerminating("");
       return;
     }
-    if ((mode === 3 || mode === 4) && !validateProxy()) {
+    if ((mode === ApiMode.LOCAL_WITH_PROXY || mode === ApiMode.REMOTE_WITH_PROXY) && !validateProxy()) {
       showDialog("无效代理地址", "代理地址格式不正确，请修改后再试一次");
       setIdOfInstanceTerminating("");
       return;
     }
-    if (mode === 1 || mode === 3) {
+    if (mode === ApiMode.LOCAL || mode === ApiMode.LOCAL_WITH_PROXY) {
       AWS.config = new AWS.Config();
       AWS.config.update(
         {
@@ -959,7 +967,7 @@ export default function App() {
           region: regionOfCheckedInstances
         }
       );
-      if (mode === 3) {
+      if (mode === ApiMode.LOCAL_WITH_PROXY) {
         AWS.config.update({
           httpOptions: { agent: ProxyAgent(proxy) }
         });
@@ -982,9 +990,9 @@ export default function App() {
         }
       });
     }
-    else if (mode === 2 || mode === 4) {
+    else if (mode === ApiMode.REMOTE || mode === ApiMode.REMOTE_WITH_PROXY) {
       var postBody
-      if (mode === 2) {
+      if (mode === ApiMode.REMOTE) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -993,7 +1001,7 @@ export default function App() {
           useProxy: false
         });
       }
-      else if (mode === 4) {
+      else if (mode === ApiMode.REMOTE_WITH_PROXY) {
         postBody = JSON.stringify({
           aki: aki,
           saki: saki,
@@ -1102,7 +1110,7 @@ export default function App() {
           </FormControl>
         </div>
       )}
-      {mode === 2 ? (
+      {mode === ApiMode.REMOTE ? (
         <>
           <div>
             <FormControl sx={{ m: 1, width: 0.9, maxWidth: 600 }}>
@@ -1118,7 +1126,7 @@ export default function App() {
       ) : (
         <></>
       )}
-      {mode === 3 ? (
+      {mode === ApiMode.LOCAL_WITH_PROXY ? (
         <>
           <div>
             <FormControl sx={{ m: 1, width: 0.9, maxWidth: 600 }}>
@@ -1131,7 +1139,7 @@ export default function App() {
       ) : (
         <></>
       )}
-      {mode === 4 ? (
+      {mode === ApiMode.REMOTE_WITH_PROXY ? (
         <>
           <div>
             <FormControl sx={{ m: 1, width: 0.9, maxWidth: 600 }}>
@@ -1155,7 +1163,7 @@ export default function App() {
         <></>
       )}
       <div>
-        {mode === 1 ? (
+        {mode === ApiMode.LOCAL ? (
           <Typography sx={{ m: 1 }} variant="subtitle2">在本地模式下，如果您使用了限制IP地址追踪，则检查IP可能不会工作。</Typography>
         ) : (
           <></>
