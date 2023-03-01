@@ -130,7 +130,7 @@ export default async function launchInstance(awsConfig, instanceConfig) {
   let ami = instanceConfig.ami
   let systemType = 'Unknown'
   if (!ami) {
-    const {imageName, imageOwner, imageSystemType} = findSystemInfo(instanceConfig.system);
+    const {imageName, imageOwner, systemType: imageSystemType} = findSystemInfo(instanceConfig.system);
     const imageFilter = {
       Filters: [
         {
@@ -178,7 +178,7 @@ export default async function launchInstance(awsConfig, instanceConfig) {
   // 有指定的 userData 时使用指定的 userData
   let userData = instanceConfig.userData
   // 没有指定 userData，但是指定了密码时，使用默认的 userData
-  if (systemType === 'Linux' && !instanceConfig.userData && instanceConfig.password) {
+  if (systemType === 'Linux' && !userData && instanceConfig.password) {
     userData = "#!/bin/bash\necho root:" + instanceConfig.password + "|sudo chpasswd root\nsudo rm -rf /etc/ssh/sshd_config\nsudo tee /etc/ssh/sshd_config <<EOF\nClientAliveInterval 120\nSubsystem       sftp    /usr/lib/openssh/sftp-server\nX11Forwarding yes\nPrintMotd no\nChallengeResponseAuthentication no\nPasswordAuthentication yes\nPermitRootLogin yes\nUsePAM yes\nAcceptEnv LANG LC_*\nEOF\nsudo systemctl restart sshd\n"
   }
   // 没有指定 userData，也没有指定密码时，使用空的 userData
@@ -190,7 +190,7 @@ export default async function launchInstance(awsConfig, instanceConfig) {
       {
         DeviceName: "/dev/xvda",
         Ebs: {
-          VolumeSize: instanceConfig.VolumeSize
+          VolumeSize: 20
         }
       }
     ],
