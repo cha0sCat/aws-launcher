@@ -48,9 +48,9 @@ import AWS from 'aws-sdk';
 import ServiceQuotas from "aws-sdk/clients/servicequotas";
 
 // internal
-import handleLaunchInstance from '../common/common/aws/launch-instance';
-import {findSystemInfo, SystemInformation} from '../common/common/aws/launch-instance';
-import handleChangeInstanceIP from '../common/common/aws/change-instance-ip';
+import handleLaunchInstance from '../common/aws/launch-instance';
+import {findSystemInfo, SystemInformation} from '../common/aws/launch-instance';
+import handleChangeInstanceIP from '../common/aws/change-instance-ip';
 
 //Need Further Investigation
 //var ProxyAgent = require('proxy-agent');
