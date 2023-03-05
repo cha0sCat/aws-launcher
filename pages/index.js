@@ -39,6 +39,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
+import {Autocomplete} from "@mui/material";
 
 //MaterialUI Icons
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
@@ -51,6 +52,7 @@ import ServiceQuotas from "aws-sdk/clients/servicequotas";
 import handleLaunchInstance from '../common/aws/launch-instance';
 import {findSystemInfo, SystemInformation} from '../common/aws/launch-instance';
 import handleChangeInstanceIP from '../common/aws/change-instance-ip';
+import {InstanceTypes} from "../common/aws/instance-types";
 
 //Need Further Investigation
 //var ProxyAgent = require('proxy-agent');
@@ -97,42 +99,7 @@ export default function App() {
     {'value': 'me-central-1', 'label': 'Middle East (UAE)'},
     {'value': 'sa-east-1', 'label': 'South America (São Paulo)'},
   ]
-  const types = [
-    {'value': 't2.nano', 'label': 't2.nano (1c 0.5g Low)'},
-    {'value': 't2.micro', 'label': 't2.micro (1c 1g Low to Moderate)'},
-    {'value': 't2.small', 'label': 't2.small (1c 2g Low to Moderate)'},
-    {'value': 't2.medium', 'label': 't2.medium (2c 4g Low to Moderate)'},
-    {'value': 't2.large', 'label': 't2.large (2c 8g Low to Moderate)'},
-    {'value': 't2.xlarge', 'label': 't2.xlarge (4c 16g Moderate)'},
-    {'value': 't2.2xlarge', 'label': 't2.2xlarge (8c 32g Moderate)'},
-    {'value': 't3.nano', 'label': 't3.nano (2c 0.5g 5Gbps)'},
-    {'value': 't3.micro', 'label': 't3.micro (2c 1g 5Gbps)'},
-    {'value': 't3.small', 'label': 't3.small (2c 2g 5Gbps)'},
-    {'value': 't3.medium', 'label': 't3.medium (2c 4g 5Gbps)'},
-    {'value': 't3.large', 'label': 't3.large (2c 8g 5Gbps)'},
-    {'value': 't3.xlarge', 'label': 't3.xlarge (4c 16g 5Gbps)'},
-    {'value': 't3.2xlarge', 'label': 't3.2xlarge (8c 32g 5Gbps)'},
-    {'value': 't3a.nano', 'label': 't3a.nano (2c 0.5g 5Gbps)'},
-    {'value': 't3a.micro', 'label': 't3a.micro (2c 1g 5Gbps)'},
-    {'value': 't3a.small', 'label': 't3a.small (2c 2g 5Gbps)'},
-    {'value': 't3a.medium', 'label': 't3a.medium (2c 4g 5Gbps)'},
-    {'value': 't3a.large', 'label': 't3a.large (2c 8g 5Gbps)'},
-    {'value': 't3a.xlarge', 'label': 't3a.xlarge (4c 16g 5Gbps)'},
-    {'value': 't3a.2xlarge', 'label': 't3a.2xlarge (8c 32g 5Gbps)'},
-    {'value': 'c5.large', 'label': 'c5.large (2c 4g 10Gbps)'},
-    {'value': 'c5.xlarge', 'label': 'c5.xlarge (4c 8g 10Gbps)'},
-    {'value': 'c5.2xlarge', 'label': 'c5.2xlarge (8c 16g 10Gbps)'},
-    {'value': 'c5.4xlarge', 'label': 'c5.4xlarge (16c 32g 10Gbps)'},
-    {'value': 'c5a.large', 'label': 'c5a.large (2c 4g 10Gbps)'},
-    {'value': 'c5a.xlarge', 'label': 'c5a.xlarge (4c 8g 10Gbps)'},
-    {'value': 'c5a.2xlarge', 'label': 'c5a.2xlarge (8c 16g 10Gbps)'},
-    {'value': 'c5a.4xlarge', 'label': 'c5a.4xlarge (16c 32g 10Gbps)'},
-    {'value': 'c5a.8xlarge', 'label': 'c5a.8xlarge (32c 64g 10Gbps)'},
-    {'value': 'c5n.large', 'label': 'c5n.large (2c 5.25g 25Gbps)'},
-    {'value': 'c5n.xlarge', 'label': 'c5n.xlarge (4c 10.5g 25Gbps)'},
-    {'value': 'c5n.2xlarge', 'label': 'c5n.2xlarge (8c 21g 25Gbps)'},
-    {'value': 'c5n.4xlarge', 'label': 'c5n.4xlarge (16c 42g 25Gbps)'},
-  ]
+  const types = InstanceTypes;
   const instanceStates = new Map([[0, "正在启动"], [16, "正在运行"], [32, "正在关机"], [48, "已终止"], [64, "正在停止"], [80, "已停止"]]);
 
   //Credential States
@@ -1095,15 +1062,14 @@ export default function App() {
             }} />
           </FormControl>
         ) : (
-          <FormControl sx={{ m: 1, minWidth: 150 }} size="small">
-            <InputLabel id="select-type-label">实例类型</InputLabel>
-            <Select labelId="select-type-label" label="实例类型" value={type} onChange={e => {
-              setType(e.target.value);
-            }}>
-              {types.map(type =>
-                <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
-              )}
-            </Select>
+          <FormControl sx={{ m: 1, minWidth: 320 }} size="small">
+            <Autocomplete
+              id="select-type-label"
+              options={types}
+              value={type}
+              renderInput={(params) => <TextField {...params} label="实例类型" />}
+              onChange={(e, option) => {setType(option.value)}}
+            />
           </FormControl>
         )}
         {systemType === "Linux" && !isShowAdvancedOptions && (
