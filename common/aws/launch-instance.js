@@ -190,7 +190,7 @@ export default async function launchInstance(awsConfig, instanceConfig) {
       {
         DeviceName: "/dev/xvda",
         Ebs: {
-          VolumeSize: 20
+          VolumeSize: instanceConfig.VolumeSize
         }
       }
     ],
