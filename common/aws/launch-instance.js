@@ -122,15 +122,22 @@ export function findSystemInfo(systemName) {
  */
 export default async function launchInstance(awsConfig, instanceConfig) {
   AWS.config = awsConfig;
-
   const ec2 = new AWS.EC2();
+
+  let {
+    ami,
+    system,
+    password,
+    userData,
+    InstanceType,
+    VolumeSize,
+  } = instanceConfig
 
   // 有 ami 时优先使用 ami
   // 否则根据 imageName 和 imageOwner 查询 AMI
-  let ami = instanceConfig.ami
   let systemType = 'Unknown'
   if (!ami) {
-    const {imageName, imageOwner, systemType: imageSystemType} = findSystemInfo(instanceConfig.system);
+    const {imageName, imageOwner, systemType: imageSystemType} = findSystemInfo(system);
     const imageFilter = {
       Filters: [
         {
@@ -176,12 +183,13 @@ export default async function launchInstance(awsConfig, instanceConfig) {
   }).promise()
 
   // 有指定的 userData 时使用指定的 userData
-  let userData = instanceConfig.userData
+  if (userData) {}
+
   // 没有指定 userData，但是指定了密码时，使用默认的 userData
-  if (systemType === 'Linux' && !userData && instanceConfig.password) {
-    userData = "#!/bin/bash\necho root:" + instanceConfig.password + "|sudo chpasswd root\nsudo rm -rf /etc/ssh/sshd_config\nsudo tee /etc/ssh/sshd_config <<EOF\nClientAliveInterval 120\nSubsystem       sftp    /usr/lib/openssh/sftp-server\nX11Forwarding yes\nPrintMotd no\nChallengeResponseAuthentication no\nPasswordAuthentication yes\nPermitRootLogin yes\nUsePAM yes\nAcceptEnv LANG LC_*\nEOF\nsudo systemctl restart sshd\n"
+  else if (!userData && password && systemType === 'Linux') {
+    userData = "#!/bin/bash\necho root:" + password + "|sudo chpasswd root\nsudo rm -rf /etc/ssh/sshd_config\nsudo tee /etc/ssh/sshd_config <<EOF\nClientAliveInterval 120\nSubsystem       sftp    /usr/lib/openssh/sftp-server\nX11Forwarding yes\nPrintMotd no\nChallengeResponseAuthentication no\nPasswordAuthentication yes\nPermitRootLogin yes\nUsePAM yes\nAcceptEnv LANG LC_*\nEOF\nsudo systemctl restart sshd\n"
   }
-  // 没有指定 userData，也没有指定密码时，使用空的 userData
+
   userData = userData ? btoa(userData) : ''
 
   // 创建实例
@@ -190,12 +198,12 @@ export default async function launchInstance(awsConfig, instanceConfig) {
       {
         DeviceName: "/dev/xvda",
         Ebs: {
-          VolumeSize: instanceConfig.VolumeSize
+          VolumeSize: VolumeSize
         }
       }
     ],
     ImageId: ami,
-    InstanceType: instanceConfig.InstanceType,
+    InstanceType: InstanceType,
     KeyName: keyName,
     MinCount: 1,
     MaxCount: 1,
